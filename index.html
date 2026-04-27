@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EliteClean — Профессиональная очистка системы</title>
+    <meta name="description" content="EliteClean — мощная утилита для очистки системы на Rust + Tauri. Очистка следов, USN журнал, управление памятью.">
+    <meta name="keywords" content="eliteclean, очистка системы, USN journal, windows utility, rust cleaner, tauri">
+    <meta name="author" content="neverjoskiy">
+    <meta property="og:title" content="EliteClean — Профессиональная очистка системы">
+    <meta property="og:description" content="Мощная утилита для очистки системы на Rust + Tauri. Максимальная производительность.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23111' width='100' height='100' rx='12'/><text y='.9em' font-size='72' fill='%23e8e8e8' font-family='monospace' x='10'>E</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:  #111;
+            --bg1: #171717;
+            --bg2: #1e1e1e;
+            --bg3: #262626;
+            --b:   #2c2c2c;
+            --bh:  #3a3a3a;
+            --tx:  #e8e8e8;
+            --tx2: #888;
+            --tx3: #444;
+            --ok:  #5a9e5a;
+            --r:   6px;
+            --t:   .15s ease;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 13px; scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--tx); min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        ::selection { background: rgba(255,255,255,.08); }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+        a { color: inherit; text-decoration: none; }
+
+        /* ── Nav ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: var(--bg1); border-bottom: 1px solid var(--b);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; height: 48px;
+        }
+        .nav-logo {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .logo-box {
+            width: 26px; height: 26px; background: var(--bg3); border: 1px solid var(--bh);
+            border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; color: var(--tx2);
+        }
+        .logo-name { font-size: 12px; font-weight: 600; color: var(--tx); }
+        .logo-name span { color: var(--tx2); }
+        .nav-links { display: flex; align-items: center; gap: 2px; }
+        .nav-link {
+            padding: 5px 10px; font-size: 12px; color: var(--tx3); border-radius: var(--r);
+            transition: color var(--t), background var(--t); cursor: pointer;
+        }
+        .nav-link:hover { color: var(--tx2); background: var(--bg2); }
+        .nav-link.active { color: var(--tx); background: var(--bg2); }
+        .nav-right { display: flex; align-items: center; gap: 6px; }
+        .btn-nav {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; background: var(--bg3); color: var(--tx2);
+            font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+            border: 1px solid var(--b); border-radius: var(--r); cursor: pointer;
+            transition: all var(--t);
+        }
+        .btn-nav:hover { background: var(--bh); color: var(--tx); border-color: var(--bh); }
+
+        /* ── Layout ── */
+        .page { padding-top: 48px; }
+        section { padding: 64px 24px; max-width: 860px; margin: 0 auto; }
+
+        /* ── Hero ── */
+        .hero { display: flex; flex-direction: column; gap: 20px; padding-top: 80px; padding-bottom: 80px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 10px; background: var(--bg2); border: 1px solid var(--b);
+            border-radius: var(--r); font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; color: var(--tx3); width: fit-content;
+        }
+        .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700;
+            line-height: 1.1; letter-spacing: -.03em; color: var(--tx);
+        }
+        .hero h1 span { color: var(--tx2); }
+        .hero-sub { font-size: 13px; color: var(--tx3); max-width: 420px; line-height: 1.7; }
+        .hero-mono {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--tx3);
+            padding: 10px 14px; background: var(--bg1); border: 1px solid var(--b);
+            border-radius: var(--r); display: flex; flex-direction: column; gap: 4px;
+            max-width: 380px;
+        }
+        .hero-mono .line { display: flex; gap: 8px; }
+        .hero-mono .p  { color: var(--tx2); }
+        .hero-mono .ok { color: var(--ok); }
+        .hero-mono .dim { color: var(--tx3); }
+        .hero-mono .blink { animation: blink 1s steps(1) infinite; }
+        @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+        .hero-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; background: var(--bg3); color: var(--tx);
+            font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+            border: 1px solid var(--bh); border-radius: var(--r); cursor: pointer;
+            transition: all var(--t);
+        }
+        .btn-primary:hover { background: var(--bh); border-color: #4a4a4a; transform: translateY(-1px); }
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; background: transparent; color: var(--tx2);
+            font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+            border: 1px solid var(--b); border-radius: var(--r); cursor: pointer;
+            transition: all var(--t);
+        }
+        .btn-ghost:hover { background: var(--bg2); color: var(--tx); border-color: var(--bh); }
+
+        /* ── Divider ── */
+        .divider { height: 1px; background: var(--b); margin: 0 24px; }
+
+        /* ── Section label ── */
+        .sec-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            color: var(--tx3); letter-spacing: .06em; text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .sec-title {
+            font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 700;
+            letter-spacing: -.025em; color: var(--tx); margin-bottom: 8px; line-height: 1.15;
+        }
+        .sec-sub { font-size: 12px; color: var(--tx3); line-height: 1.7; max-width: 480px; margin-bottom: 32px; }
+
+        /* ── Cards grid ── */
+        .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .card {
+            background: var(--bg1); border: 1px solid var(--b); border-radius: var(--r);
+            padding: 16px; transition: border-color var(--t);
+        }
+        .card:hover { border-color: var(--bh); }
+        .card.wide { grid-column: 1 / -1; }
+        .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .tag {
+            font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
+            color: var(--tx3); background: var(--bg2); border: 1px solid var(--b);
+            border-radius: 4px; padding: 2px 6px; text-transform: uppercase;
+            letter-spacing: .04em; flex-shrink: 0;
+        }
+        .card-name { font-size: 12px; font-weight: 600; color: var(--tx); }
+        .card-desc { font-size: 11px; color: var(--tx3); line-height: 1.6; }
+
+        /* ── Stats row ── */
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 32px; }
+        .stat {
+            background: var(--bg1); border: 1px solid var(--b); border-radius: var(--r);
+            padding: 14px 16px;
+        }
+        .stat-num {
+            font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600;
+            color: var(--tx); letter-spacing: -.03em; line-height: 1;
+        }
+        .stat-label { font-size: 10px; color: var(--tx3); margin-top: 5px; letter-spacing: .04em; text-transform: uppercase; }
+
+        /* ── Download ── */
+        .dl-card {
+            background: var(--bg1); border: 1px solid var(--b); border-radius: var(--r);
+            padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+            flex-wrap: wrap;
+        }
+        .dl-info { display: flex; flex-direction: column; gap: 5px; }
+        .dl-title { font-size: 14px; font-weight: 600; color: var(--tx); }
+        .dl-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--tx3); }
+        .dl-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--b); padding: 20px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11px; color: var(--tx3); flex-wrap: wrap; gap: 8px;
+        }
+        footer a { color: var(--tx3); transition: color var(--t); }
+        footer a:hover { color: var(--tx2); }
+
+        @media (max-width: 600px) {
+            .cards { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(3, 1fr); }
+            .dl-card { flex-direction: column; align-items: flex-start; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+        <div class="nav-logo">
+            <div class="logo-box">EC</div>
+            <span class="logo-name">elite<span>clean</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#home" class="nav-link active">главная</a>
+            <a href="#features" class="nav-link">возможности</a>
+            <a href="#tools" class="nav-link">инструменты</a>
+            <a href="#download" class="nav-link">скачать</a>
+        </div>
+        <div class="nav-right">
+            <a href="https://github.com/neverjoskiy/eliteclean" target="_blank" class="btn-nav">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <!-- Hero -->
+        <section id="home">
+            <div class="hero">
+                <div class="hero-badge">
+                    <div class="dot"></div>
+                    rust + tauri v2
+                </div>
+                <h1>elite<span>clean</span></h1>
+                <p class="hero-sub">Профессиональная утилита для очистки системы. Написана на Rust — быстро, надёжно, без лишнего.</p>
+                <div class="hero-mono">
+                    <div class="line"><span class="p">❯</span><span>eliteclean --scan --deep</span></div>
+                    <div class="line"><span class="ok">✓</span><span class="dim">scanning system traces...</span></div>
+                    <div class="line"><span class="ok">✓</span><span class="dim">found 1,247 artifacts</span></div>
+                    <div class="line"><span class="ok">✓</span><span class="dim">usn journal wiped</span></div>
+                    <div class="line"><span class="ok">✓</span><span class="dim">javaw memory freed</span></div>
+                    <div class="line"><span class="p">❯</span><span class="blink">_</span></div>
+                </div>
+                <div class="hero-btns">
+                    <a href="https://github.com/neverjoskiy/eliteclean/releases/download/setupus/setup.exe" target="_blank" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        скачать
+                    </a>
+                    <a href="https://github.com/neverjoskiy/eliteclean" target="_blank" class="btn-ghost">
+                        репозиторий →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- Features -->
+        <section id="features">
+            <div class="sec-label">01 — возможности</div>
+            <div class="sec-title">всё что нужно.<br>ничего лишнего.</div>
+            <p class="sec-sub">Написан на Rust — нативная скорость, минимальное потребление памяти, никаких зависимостей.</p>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-num">rust</div>
+                    <div class="stat-label">язык</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">v2</div>
+                    <div class="stat-label">tauri</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">0</div>
+                    <div class="stat-label">следов</div>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card wide">
+                    <div class="card-top"><span class="tag">perf</span><span class="card-name">Rust производительность</span></div>
+                    <p class="card-desc">Нативная компиляция, нулевые накладные расходы. Работает быстрее любого интерпретируемого аналога — без рантайма, без зависимостей.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">usn</span><span class="card-name">USN Journal</span></div>
+                    <p class="card-desc">Управление NTFS журналом — очистка или полное отключение.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">tracks</span><span class="card-name">Очистка следов</span></div>
+                    <p class="card-desc">Автоматическое удаление shellbag, prefetch, minidump и истории активности.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">memory</span><span class="card-name">Память javaw</span></div>
+                    <p class="card-desc">Сканирование и очистка памяти процессов javaw.exe.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">privacy</span><span class="card-name">Приватность</span></div>
+                    <p class="card-desc">Буфер обмена, история поиска, кэш иконок, история запуска.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- Tools -->
+        <section id="tools">
+            <div class="sec-label">02 — инструменты</div>
+            <div class="sec-title">под капотом</div>
+            <p class="sec-sub">Мощные инструменты для продвинутой работы с системой.</p>
+
+            <div class="cards">
+                <div class="card">
+                    <div class="card-top"><span class="tag">dns</span><span class="card-name">Сброс DNS кэша</span></div>
+                    <p class="card-desc">ipconfig /flushdns — очистка кэша резолвера.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">arp</span><span class="card-name">Очистка ARP</span></div>
+                    <p class="card-desc">Удаление таблицы ARP кэша.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">reg</span><span class="card-name">Очистка реестра</span></div>
+                    <p class="card-desc">RunMRU, RecentDocs, UserAssist, TypedPaths.</p>
+                </div>
+                <div class="card">
+                    <div class="card-top"><span class="tag">dump</span><span class="card-name">Дампы памяти</span></div>
+                    <p class="card-desc">Minidump, MEMORY.DMP, CrashDumps.</p>
+                </div>
+                <div class="card wide">
+                    <div class="card-top"><span class="tag">global</span><span class="card-name">Глобальная очистка</span></div>
+                    <p class="card-desc">event log, mft, amcache, jump lists, recent files, browser history, temp — всё за один запуск.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- Download -->
+        <section id="download">
+            <div class="sec-label">03 — скачать</div>
+            <div class="dl-card">
+                <div class="dl-info">
+                    <div class="dl-title">eliteclean для Windows</div>
+                    <div class="dl-meta">rust + tauri v2 · windows x64</div>
+                </div>
+                <div class="dl-btns">
+                    <a href="https://github.com/neverjoskiy/eliteclean/releases/download/setupus/setup.exe" target="_blank" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        setup.exe
+                    </a>
+                    <a href="https://github.com/neverjoskiy/eliteclean" target="_blank" class="btn-ghost">
+                        исходный код
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>elite<span style="color:var(--tx3)">clean</span> — rust + tauri v2</span>
+            <div style="display:flex;gap:16px;">
+                <a href="https://github.com/neverjoskiy/eliteclean" target="_blank">github</a>
+                <a href="https://github.com/neverjoskiy/eliteclean/releases" target="_blank">releases</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+                    if (link) link.classList.add('active');
+                }
+            });
+        }, { threshold: 0.4 });
+        sections.forEach(s => observer.observe(s));
+    </script>
+</body>
+</html>
